@@ -101,7 +101,7 @@
 
 /obj/machinery/computer/operating/ui_status(mob/user, datum/ui_state/state)
 	. = ..()
-	if(isliving(user) && !issilicon(user))
+	if(isliving(user))
 		. = min(., ui_check(user))
 
 /// Checks for special ui state conditions

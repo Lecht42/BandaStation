@@ -330,13 +330,13 @@
  */
 /mob/living/proc/grab(mob/living/target)
 	if(!istype(target))
-		return GRAB_SKIP
+		return FALSE
 	if(SEND_SIGNAL(src, COMSIG_LIVING_GRAB, target) & (COMPONENT_CANCEL_ATTACK_CHAIN|COMPONENT_SKIP_ATTACK))
 		return FALSE
 	if(target.check_block(src, 0, "захват [declent_ru(GENITIVE)]", UNARMED_ATTACK))
 		return FALSE
 	target.grabbedby(src)
-	return GRAB_SUCCESS
+	return TRUE
 
 /**
  * Called when this mob is grabbed by another mob.

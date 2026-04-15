@@ -535,10 +535,6 @@
 		cure_blind(EYES_COVERED)
 		overlay_fullscreen("tint", /atom/movable/screen/fullscreen/impaired, 2)
 
-	else if(tint >= TINT_MILD)
-		cure_blind(EYES_COVERED)
-		overlay_fullscreen("tint", /atom/movable/screen/fullscreen/impaired, 1)
-
 	else
 		cure_blind(EYES_COVERED)
 		clear_fullscreen("tint", 0 SECONDS)

@@ -159,15 +159,9 @@
 				customMaterials = FALSE
 				continue
 
-			var/datum/material_requirement/requirement = null
-			if (ispath(mat, /datum/material_slot))
-				var/datum/material_slot/slot = SSmaterials.material_slots[mat]
-				requirement = SSmaterials.requirements[slot.requirement_type]
-			else
-				requirement = SSmaterials.requirements[mat]
-
-			if (!istype(requirement))
-				stack_trace("Design [design] has an invalid material requirement: [mat]")
+			var/datum/material_requirement/requirement = SSmaterials.requirements[mat]
+			if (!requirement)
+				stack_trace("Design [design] has an invalid material requirement [requirement]")
 				continue
 
 			cost[requirement.get_description()] = design_cost
@@ -264,19 +258,13 @@
 
 	// Check for materials required. For custom material items decode their required materials
 	var/list/materials_needed = list()
-	var/list/slots_chosen = null
 	var/mat_choice = FALSE
 	for(var/material, amount_needed in design.materials)
-		if(!ispath(material, /datum/material_requirement) && !ispath(material, /datum/material_slot)) // Material requirement
+		if(!ispath(material, /datum/material_requirement)) // Material requirement
 			if(!istype(material, /datum/material))
 				CRASH("Autolathe ui_act got passed an invalid material id: [material]")
 			materials_needed[material] += amount_needed
 			continue
-
-		var/datum/material_slot/slot = null
-		if (ispath(material, /datum/material_slot))
-			slot = SSmaterials.material_slots[material]
-			material = slot.requirement_type
 
 		var/list/choices = list()
 		for(var/datum/material/valid_candidate as anything in SSmaterials.get_materials_by_req(material))
@@ -289,7 +277,7 @@
 
 		var/chosen = tgui_input_list(
 			ui.user,
-			"Select the material to use[slot ? " for [LOWER_TEXT(slot.name)]" : ""]",
+			"Select the material to use",
 			"Material Selection",
 			sort_list(choices),
 		)
@@ -297,9 +285,6 @@
 			return // user cancelled
 
 		material = choices[chosen]
-		if (slot)
-			var/datum/material/proper_mat = material
-			LAZYSET(slots_chosen, slot.type, proper_mat.id)
 
 		if(isnull(material))
 			CRASH("A player chose an invalid custom material in autolathe ui_act: [material]")
@@ -339,7 +324,7 @@
 			if(!istype(material, /datum/material/glass) && !istype(material, /datum/material/iron))
 				ui.user.client.give_award(/datum/award/achievement/misc/getting_an_upgrade, ui.user)
 				break
-	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, build_count, build_time_per_item, material_cost_coefficient, charge_per_item, materials_needed, target_location, slots_chosen), build_time_per_item)
+	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, build_count, build_time_per_item, material_cost_coefficient, charge_per_item, materials_needed, target_location), build_time_per_item)
 
 	return TRUE
 
@@ -355,7 +340,7 @@
  * * list/materials_needed - the list of materials to print 1 item
  * * turf/target - the location to drop the printed item on
 */
-/obj/machinery/autolathe/proc/do_make_item(datum/design/design, items_remaining, build_time_per_item, material_cost_coefficient, charge_per_item, list/materials_needed, turf/target, list/slots_chosen)
+/obj/machinery/autolathe/proc/do_make_item(datum/design/design, items_remaining, build_time_per_item, material_cost_coefficient, charge_per_item, list/materials_needed, turf/target)
 	PROTECTED_PROC(TRUE)
 
 	if(items_remaining <= 0) // how
@@ -402,8 +387,6 @@
 		created = design.create_result(target, materials_needed, amount = number_to_make)
 	else
 		created = design.create_result(target, materials_needed)
-		if (length(slots_chosen))
-			created.set_material_slots(slots_chosen)
 		split_materials_uniformly(materials_needed, material_cost_coefficient, created)
 
 	if(isitem(created))
@@ -419,7 +402,7 @@
 	if(items_remaining <= 0)
 		finalize_build()
 		return
-	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, items_remaining, build_time_per_item, material_cost_coefficient, charge_per_item, materials_needed, target, slots_chosen), build_time_per_item)
+	addtimer(CALLBACK(src, PROC_REF(do_make_item), design, items_remaining, build_time_per_item, material_cost_coefficient, charge_per_item, materials_needed, target), build_time_per_item)
 
 /**
  * Resets the icon state and busy flag

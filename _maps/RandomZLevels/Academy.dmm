@@ -1768,7 +1768,7 @@
 "lT" = (
 /obj/structure/table,
 /obj/item/stack/cable_coil,
-/obj/item/stack/sheet/animalhide/xeno,
+/obj/item/stack/sheet/xenochitin,
 /turf/open/floor/plating,
 /area/awaymission/caves/academy)
 "lU" = (
